@@ -4,6 +4,49 @@ import logging
 
 import monkeypatch
 
+class LazyLogger( object ):
+    def __init__( self, logger, level, args, kwargs ):
+        self.logger = logger
+        self.level = level
+        self.args = args
+        self.kwargs = kwargs
+
+    def __rrshift__( self, other ):
+        if isinstance( other, basestring ):
+            other.log( self.logger, *self.args, level = self.level, **self.kwargs )
+        else:
+            super( LazyLogger, self ).__rrshift__( other )
+
+
+##
+class PrettyLogger( logging.Logger ):
+
+    def __init__( self, *args, **kwargs ):
+        if args and 1 == len( args ) and isinstance( args[ 0 ], logging.Logger ):
+            self._logger = args[ 0 ]
+        else:
+            super( PrettyLogger, self ).__init( self, *args, **kwargs )
+
+    def debug( self, *args, **kwargs ):
+        return LazyLogger( self._logger, logging.DEBUG, args, kwargs )
+    
+    def info( self, *args, **kwargs ):
+        return LazyLogger( self._logger, logging.INFO, args, kwargs )
+
+    def warning( self, *args, **kwargs ):
+        return LazyLogger( self._logger, logging.WARNING, args, kwargs )
+
+    warn = warning
+
+    def error( self, *args, **kwargs ):
+        return LazyLogger( self._logger, logging.ERROR, args, kwargs )
+
+    def critical( self, *args, **kwargs ):
+        return LazyLogger( self._logger, logging.CRITICAL, args, kwargs )
+
+    fatal = critical
+
+
 #
 def log( msg, logger, *args, **kwargs ):
 
@@ -31,7 +74,7 @@ def log( msg, logger, *args, **kwargs ):
     return record.getMessage()
 
 
-# burrowed from python's logging module
+# borrowed from python's logging module
 # unfortunately, python's logging module isn't robust or modular enough to 
 # be easily extended in a prettier way.
 def find_caller():
