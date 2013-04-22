@@ -8,7 +8,7 @@ import monkeypatch
 def log( msg, logger, *args, **kwargs ):
     level = kwargs.get( "level", None )
     if not logger.isEnabledFor( level ):
-        return 
+        return None 
 
     msg = msg.strip()
     extra = kwargs.get( "extra", None )
@@ -17,6 +17,7 @@ def log( msg, logger, *args, **kwargs ):
     record = logger.makeRecord( logger.name, level, fn, lno, msg, args, exc_info, 
         func, extra )
     logger.handle( record )
+    return record.getMessage()
 
 
 # burrowed from python's logging module
@@ -76,7 +77,7 @@ for fname, level in logmethods.items():
 def test():
     logging.basicConfig( level = logging.DEBUG )
     logger = logging.getLogger( "prettylogs-test" )
-    
+
     """
     prettylogs is beautiful, eh?
     """.loginfo( logger )
