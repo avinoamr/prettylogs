@@ -4,16 +4,27 @@ import logging
 
 import monkeypatch
 
-##
+#
 def log( msg, logger, *args, **kwargs ):
-    level = kwargs.get( "level", None )
+
+    # explicit level, or from defaults
+    level = kwargs[ "level" ]
     if not logger.isEnabledFor( level ):
         return None 
 
     msg = msg.strip()
     extra = kwargs.get( "extra", None )
     exc_info = kwargs.get( "exc_info", None )
-    fn, lno, func = find_caller()
+    fn, lno, func, f_locals = find_caller()
+
+    if args and len( args ) == 1 and isinstance( args[ 0 ], dict ) and args[ 0 ]:
+        # sole argument is a dictionary, add the locals to the dictionary
+        f_locals.update( args[ 0 ] )
+        args = [ f_locals ]
+    elif not args:
+        # no arguments delivered, default to the locals dictionary
+        args = [ f_locals ]
+
     record = logger.makeRecord( logger.name, level, fn, lno, msg, args, exc_info, 
         func, extra )
     logger.handle( record )
@@ -30,7 +41,8 @@ def find_caller():
     frame = sys._getframe() if hasattr( sys, "_getframe" ) else None
     if frame is None:
         try:
-            raise Exception
+            # little trick for getting this frame from the exception traceback
+            raise Exception 
         except:
             frame = sys.exc_info()[ 2 ].tb_frame
 
@@ -43,14 +55,16 @@ def find_caller():
 
         filename = os.path.normcase( frame.f_code.co_filename )
         if filename == src_file:
+            # keep climbing up the stack until a frame outside of this file
+            # is found - this has to be the invoker
             frame = frame.f_back
             continue
 
         rv = ( frame.f_code.co_filename, frame.f_lineno, 
-               frame.f_code.co_name )
+               frame.f_code.co_name, frame.f_locals )
 
     if rv is None:
-        rv = ( None, None, None )
+        rv = ( "unknown", "unknown", "unknown", {} )
 
     return rv
 
@@ -72,16 +86,3 @@ logmethods = {
 dstr[ "log" ] = log
 for fname, level in logmethods.items():
     dstr[ fname ] = log_with_level( level )
-
-#
-def test():
-    logging.basicConfig( level = logging.DEBUG )
-    logger = logging.getLogger( "prettylogs-test" )
-
-    """
-    prettylogs is beautiful, eh?
-    """.loginfo( logger )
-
-#
-if "__main__" == __name__:
-    test()
