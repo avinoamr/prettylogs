@@ -31,11 +31,11 @@ Content first
 The first key goal of prettylogs is to put the actual content of the log line first. It makes the code read more fluently, and helps explain what the code does. To some extent, it can replace or extend existing comments (similar to how docstrings work):
 
 ```python
-"This is a short log message" >> logger.info()
-
 """
 This is a lengthy message
-with multiple lines
+with multiple lines that
+describes the state and 
+logic of the code
 """ >> logger.info()
 ```
 
