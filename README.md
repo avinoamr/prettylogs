@@ -41,7 +41,7 @@ logic of the code
 
 String formatting
 -----------------
-The right-shift notation uses the same API as Python's `Logger` class, except that it the message argument isn't passed directly. The rest of the arguments are passed to the logging default string formatting behavior:
+The right-shift notation uses the same API as Python's `Logger` class, except that the message argument isn't passed directly. The rest of the arguments are passed to the logging module for the default string formatting behavior:
 
 ```python
 """
@@ -53,7 +53,7 @@ Give me a big hug, %(you)s
 """ >> logger.info({ "you": "Big Bird" } )
 ```
 
-Another little trick is that the local scope is also available in string formatting (unless overridden explicitly):
+Another little trick is that the local scope is also available in string formatting (unless overridden):
 
 ```python
 howmany = "SEVEN"
