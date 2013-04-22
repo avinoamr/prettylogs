@@ -50,7 +50,7 @@ The right-shift notation uses the same API as Python's `Logger` class, except th
 
 """
 Give me a big hug, %(you)s
-""" >> logger.info({ "you": "Big Bird" } )
+""" >> logger.info({ "you": "Big Bird" })
 ```
 
 Another little trick is that the local scope is also available in string formatting (unless overridden):
