@@ -13,7 +13,7 @@ This library doesn't solve this problem. Instead, it attempts to reduce the boil
 
 Content first
 -------------
-The first key goal of prettylogs is to put the actual content of the log line first. It makes the code read more fluently, and helps explain what the code does. To some extend, it can replace or extend existing comments (similar to how docstrings work):
+The first key goal of prettylogs is to put the actual content of the log line first. It makes the code read more fluently, and helps explain what the code does. To some extent, it can replace or extend existing comments (similar to how docstrings work):
 
 ```python
 "This is a short log message".loginfo( logger )
@@ -24,4 +24,31 @@ with multiple lines
 """.loginfo( logger )
 ```
 
-This is done by extending Python's built-in `basestring` class (parent class of `str` and `unicode`) with normal logging shortcuts of the logging module. Alternatively, you can just use `.log( logger, level = 60 )` for more robust control on the log level.
+This is done by extending Python's built-in `basestring` class (parent class of `str` and `unicode`) with the normal logging shortcuts of the logging module. Alternatively, you can just use `.log( logger, level = 60 )` for more robust control on the log level.
+
+String formatting
+-----------------
+You can notice that the first argument is always the logger instance to be used. The rest of the arguments are passed as-is to the logger. This maintains the normal behavior of the logging methods for string formatting:
+
+```python
+"""
+%s stole the %s
+""".loginfo( logger, "monster", "cookie jar" )
+
+"""
+Give me a big hug, %(you)s
+""".loginfo( logger, { "you": "Big Bird" } )
+```
+
+Another little trick is that the local scope is also available in string formatting (unless overridden explicitly):
+
+```python
+howmany = "SEVEN"
+"""
+%(howmany)s BANANAS!
+""".loginfo( logger )
+```
+
+This usually eliminates, or reduces, the redudent variable passing thus allowing the log lines to remain concise and simply describe the state of the current scope with little boilerplate.
+
+
