@@ -8,7 +8,7 @@ Logs are ugly. They add massive amounts of fluff to the code, making it bloated 
 
 This library doesn't solve the problem. Instead, it attempts to reduce the boilerplate of logging by making it minimalistic and concise.
 
-> Note: `prettylogs` uses the unholy magic of monkey patching the built-in `basestring` type. If you are disgusted by it, now will be a good time to leave.
+> Note: `prettylogs` uses a tiny temporary class overhead for every logline. If your system is memory- or performance-sensitive you might prefer using the regular logging facility.
 
 Getting Started
 ---------------
