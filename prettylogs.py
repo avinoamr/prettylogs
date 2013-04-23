@@ -30,7 +30,7 @@ class _LazyLogMethod( object ):
         # 
         fn, lno, func, f_locals = find_caller()
 
-        if args and len( args ) == 1 and isinstance( args[ 0 ], dict ):
+        if "%s" not in msg:
             # sole argument is a dictionary, add the locals to the dictionary
             f_locals.update( args[ 0 ] )
             args = [ f_locals ]
