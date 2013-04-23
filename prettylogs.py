@@ -1,25 +1,60 @@
 import sys
 import os
 import logging
+import textwrap
 
-import monkeypatch
+#
+class _LazyLogMethod( object ):
+    """ LazyLogger is a lazy-wrapper of the Logger log methods """
 
-class LazyLogger( object ):
+    #
     def __init__( self, logger, level, args, kwargs ):
         self.logger = logger
         self.level = level
         self.args = args
         self.kwargs = kwargs
 
+    #
+    def log( self, msg ):
+        if not self.logger.isEnabledFor( self.level ):
+            return None
+
+        # 
+        msg = textwrap.dedent( msg ).strip().replace( "\n", " " )
+        level = self.level
+        args = self.args
+        kwargs = self.kwargs
+        extra = self.kwargs.get( "extra", None )
+        exc_info = self.kwargs.get( "exc_info", None )
+
+        # 
+        fn, lno, func, f_locals = find_caller()
+
+        if args and len( args ) == 1 and isinstance( args[ 0 ], dict ):
+            # sole argument is a dictionary, add the locals to the dictionary
+            f_locals.update( args[ 0 ] )
+            args = [ f_locals ]
+        elif not args:
+            # no arguments delivered, default to the locals dictionary
+            args = [ f_locals ]
+
+        record = self.logger.makeRecord( self.logger.name, level, fn, lno, msg, 
+            args, exc_info, func, extra )
+        self.logger.handle( record )
+        return record.getMessage()
+
+    #
     def __rrshift__( self, other ):
         if isinstance( other, basestring ):
-            other.log( self.logger, *self.args, level = self.level, **self.kwargs )
+            self.log( other )
         else:
             super( LazyLogger, self ).__rrshift__( other )
 
 
 ##
 class PrettyLogger( logging.Logger ):
+    """ PrettyLogger is a dump Logger decorator that's used to invoke
+    the logging methods lazily """
 
     def __init__( self, *args, **kwargs ):
         if args and 1 == len( args ) and isinstance( args[ 0 ], logging.Logger ):
@@ -27,51 +62,27 @@ class PrettyLogger( logging.Logger ):
         else:
             super( PrettyLogger, self ).__init( self, *args, **kwargs )
 
+    def log( self, level, *args, **kwargs ):
+        return _LazyLogMethod( self._logger, level, args, kwargs )
+
     def debug( self, *args, **kwargs ):
-        return LazyLogger( self._logger, logging.DEBUG, args, kwargs )
+        return self.log( logging.DEBUG, *args, **kwargs )
     
     def info( self, *args, **kwargs ):
-        return LazyLogger( self._logger, logging.INFO, args, kwargs )
+        return self.log( logging.INFO, *args, **kwargs )
 
     def warning( self, *args, **kwargs ):
-        return LazyLogger( self._logger, logging.WARNING, args, kwargs )
+        return self.log( logging.WARNING, *args, **kwargs )
 
     warn = warning
 
     def error( self, *args, **kwargs ):
-        return LazyLogger( self._logger, logging.ERROR, args, kwargs )
+        return self.log( logging.ERROR, *args, **kwargs )
 
     def critical( self, *args, **kwargs ):
-        return LazyLogger( self._logger, logging.CRITICAL, args, kwargs )
+        return self.log( logging.CRITICAL, *args, **kwargs )
 
     fatal = critical
-
-
-#
-def log( msg, logger, *args, **kwargs ):
-
-    # explicit level, or from defaults
-    level = kwargs[ "level" ]
-    if not logger.isEnabledFor( level ):
-        return None 
-
-    msg = msg.strip()
-    extra = kwargs.get( "extra", None )
-    exc_info = kwargs.get( "exc_info", None )
-    fn, lno, func, f_locals = find_caller()
-
-    if args and len( args ) == 1 and isinstance( args[ 0 ], dict ) and args[ 0 ]:
-        # sole argument is a dictionary, add the locals to the dictionary
-        f_locals.update( args[ 0 ] )
-        args = [ f_locals ]
-    elif not args:
-        # no arguments delivered, default to the locals dictionary
-        args = [ f_locals ]
-
-    record = logger.makeRecord( logger.name, level, fn, lno, msg, args, exc_info, 
-        func, extra )
-    logger.handle( record )
-    return record.getMessage()
 
 
 # borrowed from python's logging module
@@ -110,22 +121,3 @@ def find_caller():
         rv = ( "unknown", "unknown", "unknown", {} )
 
     return rv
-
-#
-def log_with_level( level ):
-    return lambda *args, **kwargs: log( *args, level = level, **kwargs )
-
-# monkey patch the basestring to expose the logging methods
-dstr = monkeypatch.get_class_dict( basestring )
-logmethods = {
-    "logdebug": logging.DEBUG,
-    "loginfo": logging.INFO,
-    "logwarning": logging.WARNING,
-    "logwarn": logging.WARNING,
-    "logerror": logging.ERROR,
-    "logcritical": logging.CRITICAL,
-    "logfatal": logging.CRITICAL
-}
-dstr[ "log" ] = log
-for fname, level in logmethods.items():
-    dstr[ fname ] = log_with_level( level )
