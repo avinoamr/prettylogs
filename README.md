@@ -4,24 +4,24 @@ A Python logging utility for easily creating simple, beautiful and minimalistic
 log lines in your code.
 
 Introduction
-------------
+---------------
 Logs are ugly. They add massive amounts of fluff to the code, making it bloated 
-and defocusing, turning your beautiful materpiece into a messy clutter of logic 
+and defocusing, turning your beautiful masterpiece into a messy clutter of logic 
 and log lines. In fact, the more complex a system is, the more likely it is to 
 require extensive logging, which - due to the reduced readability - makes the 
-system even more complex. It's a paradoxical kinda thing. Apsect-oriented 
+system even more complex. It's a paradoxical kinda thing. Aspect-oriented 
 programming presents its own ultimate solution for it, with the price of some 
 design challenges.
 
 This library doesn't solve the problem. Instead, it attempts to reduce the 
 boilerplate of logging by making it minimalistic and concise.
 
-> Note: `prettylogs` uses the unholy magic of monkey patching the 
+> Note: this library uses the unholy magic of monkey patching the 
 `logging.Logger` class. If you're disgusted by it, now will be a good time to
 leave.
 
 Getting Started
----------------
+--------------------
 After downloading and installing the library, you'll need to wrap your Logger 
 instance with the `prettylogs.PrettyLogger` class:
 ```python
@@ -31,19 +31,16 @@ logger = logging.getLogger( "sesame" )
 logger = prettylogs.PrettyLogger( logger )
 ```
 
-Alternatively, you can just configure the logging facility to use this class as 
-its default Logger class:
+Alternatively, you can just use the convenient `.pretty()` method: 
 ```python
-logging.setLoggerClass( prettylogs.PrettyLogger )
-logger = logging.getLogger( "sesame" )
+logger = logging.getLogger( "sesame" ).pretty()
 ```
 
 Content first
--------------
+----------------
 The first key goal of prettylogs is to put the actual content of the log line 
 first. It makes the code read more fluently, and helps explain what the code 
-does. To some extent, it can replace or extend existing comments (similar to how
-docstrings work):
+does. To some extent, it can replace or extend existing comments (similar to how docstrings work):
 
 ```python
 """
@@ -80,6 +77,4 @@ howmany = "SEVEN"
 """ >> logger.info()
 ```
 
-This usually eliminates, or reduces, the redudent variable passing thus allowing
-the log lines to remain concise and simply describe the state of the current 
-scope with little boilerplate.
+This usually eliminates, or reduces, the redundant variable passing thus allowing the log lines to remain concise and simply describe the state of the current scope with little boilerplate.
