@@ -121,3 +121,7 @@ def find_caller():
         rv = ( "unknown", "unknown", "unknown", {} )
 
     return rv
+
+# monkey patch the convinient pretty() method of Logger
+# to allow the easy creation of the PrettyLogger wrapper
+logging.Logger.pretty = lambda self: PrettyLogger( self )
