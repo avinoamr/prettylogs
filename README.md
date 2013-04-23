@@ -8,7 +8,7 @@ Logs are ugly. They add massive amounts of fluff to the code, making it bloated 
 
 This library doesn't solve the problem. Instead, it attempts to reduce the boilerplate of logging by making it minimalistic and concise.
 
-> Note: `prettylogs` uses the unholy magic of monkey patching the built-in `basestring` type. If you are disgusted by it, now will be a good time to leave.
+> Note: `prettylogs` uses a tiny temporary class overhead for every logline. If your system is memory- or performance-sensitive you might prefer using the regular logging facility.
 
 Getting Started
 ---------------
@@ -31,17 +31,17 @@ Content first
 The first key goal of prettylogs is to put the actual content of the log line first. It makes the code read more fluently, and helps explain what the code does. To some extent, it can replace or extend existing comments (similar to how docstrings work):
 
 ```python
-"This is a short log message" >> logger.info()
-
 """
 This is a lengthy message
-with multiple lines
+with multiple lines that
+describes the state and 
+logic of the code
 """ >> logger.info()
 ```
 
 String formatting
 -----------------
-The right-shift notation uses the same API as Python's `Logger` class, except that it the message argument isn't passed directly. The rest of the arguments are passed to the logging default string formatting behavior:
+The right-shift notation uses the same API as Python's `Logger` class, except that the message argument isn't passed directly. The rest of the arguments are passed to the logging module for the default string formatting behavior:
 
 ```python
 """
@@ -50,10 +50,10 @@ The right-shift notation uses the same API as Python's `Logger` class, except th
 
 """
 Give me a big hug, %(you)s
-""" >> logger.info({ "you": "Big Bird" } )
+""" >> logger.info({ "you": "Big Bird" })
 ```
 
-Another little trick is that the local scope is also available in string formatting (unless overridden explicitly):
+Another little trick is that the local scope is also available in string formatting (unless overridden):
 
 ```python
 howmany = "SEVEN"
