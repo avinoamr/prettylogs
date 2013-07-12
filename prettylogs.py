@@ -50,7 +50,7 @@ class _LazyLogMethod( object ):
 
 ##
 class PrettyLogger( logging.Logger ):
-    """ PrettyLogger is a dump Logger decorator that's used to invoke
+    """ PrettyLogger is a dumb Logger decorator that's used to invoke
     the logging methods lazily """
 
     def __init__( self, *args, **kwargs ):
